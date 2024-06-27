@@ -1,0 +1,111 @@
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  repo-owner:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.split-path.outputs.repo }}
+      owner: ${{ steps.split-path.outputs.owner }}
+    steps:
+      - id: split-path
+        shell: bash
+        run: |-
+          IFS='/' read -r OWNER REPO <<< "$GITHUB_REPOSITORY"
+          echo "owner=${OWNER}" >> $GITHUB_OUTPUT
+          echo "repo=${REPO}" >> $GITHUB_OUTPUT
+
+  test-repo-inputs:
+    runs-on: ubuntu-latest
+    needs: repo-owner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate cloud-init user data
+        id: repo-inputs
+        uses: ./
+        with:
+          scope: repository
+          repo: ${{ env.REPO }}
+          owner: ${{ env.OWNER }}
+          name: test_name
+          runnergroup: test_group
+          labels: testing
+          work: _work
+          ephemeral: false
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{needs.repo-owner.outputs.repo }}
+          OWNER: ${{needs.repo-owner.outputs.owner }}
+
+      - name: Echo output
+        shell: bash
+        run: |
+          [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+        env:
+          USER_DATA: ${{ toJson(steps.repo-inputs.outputs.user-data) }}
+
+  test-org-inputs:
+    runs-on: ubuntu-latest
+    needs: repo-owner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate cloud-init user data
+        id: org-inputs
+        uses: ./
+        with:
+          scope: organization
+          org: ${{ env.ORG }}
+          name: test_name
+          runnergroup: test_group
+          labels: testing
+          work: _work
+          ephemeral: false
+        env:
+          GH_TOKEN: ${{ secrets.GH_ORG_TOKEN }}
+          ORG: ${{ secrets.ORG_NAME }}
+
+      - name: echo data
+        shell: bash
+        run: |
+          [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+        env:
+          USER_DATA: ${{ toJson(steps.org-inputs.outputs.user-data) }}
+
+  test-defaults:
+    runs-on: ubuntu-latest
+    needs: repo-owner
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate cloud-init user data
+        id: default-inputs
+        uses: ./
+        with:
+          repo: ${{ env.REPO }}
+          owner: ${{ env.OWNER }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          REPO: ${{needs.repo-owner.outputs.repo }}
+          OWNER: ${{needs.repo-owner.outputs.owner }}
+
+      - name: echo data
+        shell: bash
+        run: |
+          [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+        env:
+          USER_DATA: ${{ toJson(steps.default-inputs.outputs.user-data) }}
