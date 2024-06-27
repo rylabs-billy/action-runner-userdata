@@ -117,13 +117,13 @@ org: {org}
 
 ### `name`
 
-Name of the runner. If provided then --replace option is added to replace any existing runner with the same name in order to avoid naming conflicts. Otherwise the action defaults to generating a unique name by appeding a timestamp to the repo or organizaton names.
+Name of the runner. If provided then `--replace` option is added to replace any existing runner with the same name in order to avoid naming conflicts. Otherwise the action defaults to generating a unique name by appending a timestamp to the repo or organization names.
 
 (default `yyyy-mm-dd-hhmmss-<repo/org>`)
 
 
 ### `runnergroup`
-Name of runner group to assign the runner in an organizaton.
+Name of runner group to assign the runner in an organization.
 
 (defaults to the default runner group)
 
@@ -138,7 +138,7 @@ Relative work directory for the runner
 (default `_work`)
 
 ### `ephemeral`
-Configure the runner to take only one job, and then unconfigure after the job finishes. This is recommend for public runners on public repositories to avoid security risks.
+Configure the runner to take only one job, and then un-configure after the job finishes. This is recommend for public runners on public repositories to avoid security risks.
     
 (default `true`)
 
@@ -157,7 +157,7 @@ Please open a [GitHub issue](../../issues/new/choose) to report bugs or suggest 
 
 GitHub runners will display warnings for inputs not specified in `action.yml`.
 
-This action takes three inputs that are conditionally required depending on the value of [scope](#scope). Those inputs are `repo`, `owner`, and `org`. Since they are conditionally dependent on the value of another input, statically defining them (each with its own `description`, `default` and `required` fields) would just add unnecessary bloat. For this reason they are **intentionally** excluded from `action.yaml`, which results in warings such as the following:
+This action takes three inputs that are conditionally required depending on the value of [scope](#scope). Those inputs are `repo`, `owner`, and `org`. Since they are conditionally dependent on the value of another input, statically defining them (each with its own `description`, `default` and `required` fields) would just add unnecessary bloat. For this reason they are **intentionally** excluded from `action.yaml`, which results in warnings such as the following:
 
 ```bash
 Warning: Unexpected input(s) 'repo', 'owner', valid inputs are ['entryPoint', 'args', 'scope', 'name', 'runnergroup', 'labels', 'work', 'ephemeral']
