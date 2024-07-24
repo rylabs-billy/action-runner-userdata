@@ -29,14 +29,15 @@ _error_check() {
 
 # set github variables from inputs
 _set_path() {
-  if [ "${1}" == "repo" ]
-  then
-    path="${OWNER}/${REPO}"
-    _name="${repo}"
-  else
-    path="${ORG}"
-    _name="${ORG}"
-  fi
+  case "${1}" in
+    repo)
+      path="${OWNER}/${REPO}"
+      _name="${REPO}" ;;
+    org)
+      path="${ORG}"
+      _name="${ORG}" ;;
+  esac
+
   github_url="$GITHUB_SERVER_URL/${path}"
   github_api="/${1}s/${path}/actions/runners"  
   _name="${_name}"
