@@ -49,8 +49,10 @@ jobs:
         shell: bash
         run: |
           [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${RUNNER_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
         env:
           USER_DATA: ${{ toJson(steps.repo-inputs.outputs.user-data) }}
+          RUNNER_NAME: ${{ toJson(steps.repo-inputs.outputs.runner-name) }}
 
   test-org-inputs:
     runs-on: ubuntu-latest
@@ -80,8 +82,10 @@ jobs:
         shell: bash
         run: |
           [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${RUNNER_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
         env:
           USER_DATA: ${{ toJson(steps.org-inputs.outputs.user-data) }}
+          RUNNER_NAME: ${{ toJson(steps.org-inputs.outputs.runner-name) }}
 
   test-defaults:
     runs-on: ubuntu-latest
@@ -107,5 +111,7 @@ jobs:
         shell: bash
         run: |
           [ -n "${USER_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${RUNNER_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
         env:
           USER_DATA: ${{ toJson(steps.default-inputs.outputs.user-data) }}
+          RUNNER_NAME: ${{ toJson(steps.default-inputs.outputs.runner-name) }}

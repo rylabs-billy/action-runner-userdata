@@ -66,6 +66,7 @@ config_opts() {
     local replace="--replace"
     name="${NAME}"
   fi
+  echo "runner-name=$runner_name" >> $GITHUB_OUTPUT
   opts+=("--name ${name}")
 
   [ -n "{RUNNERGROUP}" ] && opts+=("--runnergroup ${RUNNERGROUP}")

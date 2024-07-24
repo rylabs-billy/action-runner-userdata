@@ -1,4 +1,4 @@
-name: 'Github Self-hosted Runner Cloud-init Userdata'
+name: 'Github Self-hosted Runner Cloud-init User-data'
 description: 'Generates base64 encoded cloud-config user data for a self-hosted GitHub Actions runner.'
 author: 'Billy Thompson <bthompso@akamai.com>'
 branding:
@@ -27,7 +27,7 @@ inputs:
     default: 'repository'
     required: true
   name:
-    description: |
+    description: |-
       *Optional* Name of the runner. If provided then --replace option is added
       to replace any existing runner with the same name in order to avoid naming
       conflicts. Otherwise the action defaults to generating a unique name by
@@ -59,18 +59,23 @@ inputs:
     required: false
   ephemeral:
     description: |-
-      *Optional*  Configure the runner to take only one job and then unconfigure after the job
-      finishes. This is recommend for public runners on public repositories to
-      avoid security risks.
+      *Optional*  Configure the runner to take only one job and then unconfigure
+      after the job finishes. This is recommend for public runners on public
+      repositories to avoid security risks.
     
       (default `true`)
     default: true
     required: false
 outputs:
   user-data:
-    description: |
-      Base64 encoded cloud-init user data. Provide this output as the user-data paramater for a
-      cloud provider's metadata service.
+    description: |-
+      Base64 encoded cloud-init user data. Provide this output as the user-data
+      paramater for a cloud provider's metadata service.
+  runner-name:
+    description: |-
+      Name of the self-hosted runner. This output is provided in case user
+      wants to use it for the label of the cloud instance that will provisioned
+      in subsequent jobs.
 runs:
   using: 'docker'
   image: 'Dockerfile'
