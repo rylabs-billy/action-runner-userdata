@@ -1,0 +1,94 @@
+---
+name: 'Self-hosted Runner Cloud-init User-data'
+description: |-
+  Generates base64 encoded cloud-config user data for a self-hosted GitHub
+  Actions runner.
+author: 'Billy Thompson <bthompso@akamai.com>'
+branding:
+  icon: 'upload-cloud'
+  color: 'gray-dark'
+inputs:
+  scope:
+    description: |-
+      The scope of the runner. Can be for a single repository or for an
+      organization. A `repository` scope requires inputs for `owner` and `repo`.
+      Example: https://github.com/{owner}/{repo}
+
+      ```yaml
+      scope: repository
+      owner: {owner}
+      repo: {repo}
+      ```
+
+      An `organization` scope requires the `org` input.
+      Example: https://github.com/{org}
+
+      ```yaml
+      scope: organization
+      org: {org}
+      ```
+    default: 'repository'
+    required: true
+  name:
+    description: |-
+      *Optional* Name of the runner. If provided then --replace option is added
+      to replace any existing runner with the same name in order to avoid naming
+      conflicts. Otherwise the action defaults to generating a unique name by
+      appeding a timestamp to the repo or organizaton names.
+
+      (default `yyyy-mm-dd-hhmmss-<repo/org>`)
+    default: null
+    required: false
+  runnergroup:
+    description: |-
+      *Optional* Name of runner group to assign the runner in an organizaton.
+
+      (defaults to the default runner group)
+    default: null
+    required: false
+  labels:
+    description: |-
+      *Optional* Custom lables to apply in addition to the defaults.
+
+      (default `self-hosted`,`Linux`,`X64`)
+    default: null
+    required: false
+  work:
+    description: |-
+      *Optional* Relative work directory for the runner
+
+      (default `_work`)
+    default: null
+    required: false
+  ephemeral:
+    description: |-
+      *Optional*  Configure the runner to take only one job and then unconfigure
+      after the job finishes. This is recommend for public runners on public
+      repositories to avoid security risks.
+
+      (default `true`)
+    default: true
+    required: false
+outputs:
+  user-data:
+    description: |-
+      Base64 encoded cloud-init user data. Provide this output as the user-data
+      paramater for a cloud provider's metadata service.
+  runner-name:
+    description: |-
+      Name of the self-hosted runner. This output is provided in case user
+      wants to use it for the label of the cloud instance that will provisioned
+      in subsequent jobs.
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    SCOPE: ${{ inputs.scope }}
+    REPO: ${{ inputs.repo }}
+    OWNER: ${{ inputs.owner }}
+    ORG: ${{ inputs.org }}
+    NAME: ${{ inputs.name }}
+    RUNNERGROUP: ${{ inputs.runnergroup }}
+    LABELS: ${{ inputs.labels }}
+    WORK: ${{ inputs.work }}
+    EPHEMERAL: ${{ inputs.ephemeral }}

@@ -1,0 +1,7 @@
+test.sh
+entrypoint.sh
+__pycache__/
+.py[cod]
+.pytest_cache/
+env
+.env

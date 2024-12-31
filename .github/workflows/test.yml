@@ -1,0 +1,114 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.split-path.outputs.repo }}
+      owner: ${{ steps.split-path.outputs.owner }}
+    steps:
+      - id: split-path
+        shell: bash
+        run: |-
+          IFS='/' read -r OWNER REPO <<< "$GITHUB_REPOSITORY"
+          echo "owner=${OWNER}" >> $GITHUB_OUTPUT
+          echo "repo=${REPO}" >> $GITHUB_OUTPUT
+
+  build:
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        python-version: ['3.8','3.9','3.10','3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install requirements
+        run: |
+          pip install --upgrade pip
+          pip install --no-cache-dir -r requirements.txt
+        
+      - name: Run unit tests
+        run: pytest test/test.py
+
+      - name: Test all inputs
+        id: all-inputs
+        run: pytest test/integration.py
+        env:
+          SCOPE: repository
+          REPO: ${{ needs.setup.outputs.repo }}
+          OWNER: ${{ needs.setup.outputs.owner }}
+          ORG: linode
+          NAME: test_name
+          RUNNERGROUP: test_group
+          LABELS: test1,test2,test2
+          WORK: _work
+          EPHEMERAL: false
+          GH_TOKEN: '12345'
+
+      - name: Test repo inputs
+        id: repo-inputs
+        run: pytest test/integration.py
+        env:
+          SCOPE: repository
+          REPO: ${{ needs.setup.outputs.repo }}
+          OWNER: ${{ needs.setup.outputs.owner }}
+          EPHEMERAL: false
+          GH_TOKEN: '12345'
+      
+      - name: Test org inputs
+        id: org-inputs
+        run: pytest test/integration.py
+        env:
+          SCOPE: organization
+          ORG: linode
+          EPHEMERAL: false
+          GH_TOKEN: '12345'
+
+      - name: Test defaults
+        id: default-inputs
+        run: pytest test/integration.py
+        env:
+          REPO: ${{needs.setup.outputs.repo }}
+          OWNER: ${{needs.setup.outputs.owner }}
+          GH_TOKEN: '12345'
+
+      - name: Verify that Docker image builds
+        run: docker build . --file Dockerfile
+
+      - name: Verify outputs
+        shell: bash
+        run: |
+          [ -n "${ALL_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${ALL_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${REPO_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${REPO_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${ORG_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${ORG_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${DEFAULT_DATA}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+          [ -n "${DEFAULT_NAME}" ] && printf '\u2705  Test passed!' || { printf '\u274c  Test failed!'; exit 1; }
+        env:
+          ALL_DATA: ${{ steps.all-inputs.outputs.user-data }}
+          ALL_NAME: ${{ steps.all-inputs.outputs.runner-name }}
+          REPO_DATA: ${{ steps.repo-inputs.outputs.user-data }}
+          REPO_NAME: ${{ steps.repo-inputs.outputs.runner-name }}
+          ORG_DATA: ${{ steps.org-inputs.outputs.user-data }}
+          ORG_NAME: ${{ steps.org-inputs.outputs.runner-name }}
+          DEFAULT_DATA: ${{ steps.default-inputs.outputs.user-data }}
+          DEFAULT_NAME: ${{ steps.default-inputs.outputs.runner-name }}
